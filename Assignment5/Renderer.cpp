@@ -223,14 +223,27 @@ void Renderer::Render(const Scene& scene)
         for (int i = 0; i < scene.width; ++i)
         {
             // generate primary ray direction
-            float x = 0;
-            float y = 0;
+            float x;
+            float y;
             // TODO: Find the x and y positions of the current pixel to get the direction
             // vector that passes through it.
             // Also, don't forget to multiply both of them with the variable *scale*, and
             // x (horizontal) variable with the *imageAspectRatio*            
 
+
+            // 先将屏幕空间的坐标转换到[-1, 1]的标准化范围，再通过scale和imageAspectRatio恢复到在z=-1处的成像尺寸，就是世界坐标。
+            // 再和eye_pos相减计算方向。
+            x = (i + 0.5f - scene.width / 2) / (scene.width / 2);
+            y = (scene.height / 2 - j - 0.5) / (scene.height / 2);
+
+            x *= scale * imageAspectRatio;
+            y *= scale;
+
+            x -= eye_pos.x;
+            y -= eye_pos.y;
+
             Vector3f dir = Vector3f(x, y, -1); // Don't forget to normalize this direction!
+            dir = normalize(dir);
             framebuffer[m++] = castRay(eye_pos, dir, scene, 0);
         }
         UpdateProgress(j / (float)scene.height);
