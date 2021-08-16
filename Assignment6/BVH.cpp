@@ -108,7 +108,10 @@ Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
     Intersection result;
     if(node->right == nullptr && node->left == nullptr)
     {
-        node->bounds.IntersectP(ray, ray.direction_inv, result);
+        if (node->bounds.IntersectP(ray, ray.direction_inv))
+        {
+            result = node->object->getIntersection(ray);
+        }
     }
     else
     {
