@@ -8,6 +8,7 @@
 #include "Vector.hpp"
 #include <limits>
 #include <array>
+#include "Intersection.hpp"
 
 class Bounds3
 {
@@ -84,19 +85,40 @@ class Bounds3
         return (i == 0) ? pMin : pMax;
     }
 
-    inline bool IntersectP(const Ray& ray, const Vector3f& invDir,
-                           const std::array<int, 3>& dirisNeg) const;
+    inline bool IntersectP(const Ray& ray, const Vector3f& invDir, Intersection& result /*, const std::array<int, 3>& dirisNeg*/) const;
 };
 
-
-
-inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
-                                const std::array<int, 3>& dirIsNeg) const
+inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir, Intersection& result /*, const std::array<int, 3>& dirIsNeg*/) const
 {
     // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
     // TODO test if ray bound intersects
+    float txmin, txmax, tymin, tymax, tzmin, tzmax;
+    txmin = (pMin.x - ray.origin.x) * invDir.x;
+    txmax = (pMax.x - ray.origin.x) * invDir.x;
+    tymin = (pMin.y - ray.origin.y) * invDir.y;
+    tymax = (pMax.y - ray.origin.y) * invDir.y;
+    tzmin = (pMin.z - ray.origin.z) * invDir.z;
+    tzmax = (pMax.z - ray.origin.z) * invDir.z;
+    float tenter = fmin(fmin(fmin(txmin, txmax), fmin(tymin,tymax)), fmin(tzmin, tzmax));
+    float texit = fmax(fmax(fmax(txmin, txmax), fmax(tymin, tymax)), fmax(tzmin, tzmax));
+    if (texit < 0 )
+    {
+        return false;
+    }
+    float t;
+    if (tenter < 0)
+    {
+        t = texit;
+    }
+    else
+    {
+        t = tenter;
+    }
     
+    result.distance = t;
+
+    return true;
 }
 
 inline Bounds3 Union(const Bounds3& b1, const Bounds3& b2)

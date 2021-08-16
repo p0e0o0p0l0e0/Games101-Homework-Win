@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "BVH.hpp"
 #include "Intersection.hpp"
@@ -212,7 +212,7 @@ inline Intersection Triangle::getIntersection(Ray ray)
 {
     Intersection inter;
 
-    if (dotProduct(ray.direction, normal) > 0)
+    if (dotProduct(ray.direction, normal) > 0) // 是说一定有交点吗？但也不一定在三角形内吧？
         return inter;
     double u, v, t_tmp = 0;
     Vector3f pvec = crossProduct(ray.direction, e2);
@@ -232,9 +232,10 @@ inline Intersection Triangle::getIntersection(Ray ray)
     t_tmp = dotProduct(e2, qvec) * det_inv;
 
     // TODO find ray triangle intersection
-
-
-
+    if (t_tmp + EPSILON < 0)
+        return inter;
+    inter.coords = Vector3f(1 - u - v, u, v);
+    ray.t = t_tmp;
 
     return inter;
 }
