@@ -110,13 +110,9 @@ Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
     std::array<int, 3> DirIsNeg = { (int)(ray.direction.x > 0), (int)(ray.direction.y > 0), (int)(ray.direction.z > 0) };
     if (!node->bounds.IntersectP(ray, ray.direction_inv, DirIsNeg)) // 需要先判断bvh整体是否与光线有交点，避免再去与子节点计算交点。这样会提高效率
         return result;
-    if(node->right == nullptr && node->left == nullptr)
+    if (node->object)
     {
-        std::array<int, 3> DirIsNeg = { (int)(ray.direction.x > 0), (int)(ray.direction.y > 0), (int)(ray.direction.z > 0) };
-        if (node->object)
-        {
-            result = node->object->getIntersection(ray);
-        }
+        result = node->object->getIntersection(ray);
     }
     else
     {
