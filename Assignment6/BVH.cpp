@@ -105,28 +105,41 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
 Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
 {
     // TODO Traverse the BVH to find intersection
-    Intersection result;
-    if(node->right == nullptr && node->left == nullptr)
+
+    Intersection ins;
+    std::array<int, 3> DirIsNeg = { (int)(ray.direction.x > 0), (int)(ray.direction.y > 0), (int)(ray.direction.z > 0) };
+    if (!node->bounds.IntersectP(ray, ray.direction_inv, DirIsNeg)) return ins;
+    if (node->object)
     {
-        std::array<int, 3> DirIsNeg = { (int)(ray.direction.x > 0), (int)(ray.direction.y > 0), (int)(ray.direction.z > 0) };
-        if (node->bounds.IntersectP(ray, ray.direction_inv, DirIsNeg))
-        {
-            result = node->object->getIntersection(ray);
-        }
+        ins = node->object->getIntersection(ray);
+        return ins;
     }
-    else
-    {
-        Intersection hit1;
-        Intersection hit2;
-        if (node->right != nullptr)
-        {
-            hit1 = getIntersection(node->right, ray);
-        }
-        if (node->left != nullptr)
-        {
-            hit2 = getIntersection(node->left, ray);
-        }
-        result = hit1.distance < hit2.distance ? hit1 : hit2;
-    }
-    return result;
+    auto hit1 = BVHAccel::getIntersection(node->left, ray);
+    auto hit2 = BVHAccel::getIntersection(node->right, ray);
+    return hit1.distance < hit2.distance ? hit1 : hit2;
+
+    //Intersection result;
+    //if(node->right == nullptr && node->left == nullptr)
+    //{
+    //    std::array<int, 3> DirIsNeg = { (int)(ray.direction.x > 0), (int)(ray.direction.y > 0), (int)(ray.direction.z > 0) };
+    //    if (node->object && node->bounds.IntersectP(ray, ray.direction_inv, DirIsNeg))
+    //    {
+    //        result = node->object->getIntersection(ray);
+    //    }
+    //}
+    //else
+    //{
+    //    Intersection hit1;
+    //    Intersection hit2;
+    //    if (node->right != nullptr)
+    //    {
+    //        hit1 = getIntersection(node->right, ray);
+    //    }
+    //    if (node->left != nullptr)
+    //    {
+    //        hit2 = getIntersection(node->left, ray);
+    //    }
+    //    result = hit1.distance < hit2.distance ? hit1 : hit2;
+    //}
+    //return result;
 }
