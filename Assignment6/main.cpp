@@ -11,7 +11,7 @@
 // function().
 int main(int argc, char** argv)
 {
-    Scene scene(320, 240);
+    Scene scene(1280, 960);
 
     MeshTriangle bunny("../models/bunny/bunny.obj");
 

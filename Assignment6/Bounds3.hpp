@@ -85,10 +85,14 @@ class Bounds3
         return (i == 0) ? pMin : pMax;
     }
 
-    inline bool IntersectP(const Ray& ray, const Vector3f& invDir , const std::array<int, 3>& dirisNeg) const;
+    inline bool IntersectP(const Ray& ray, const Vector3f& invDir,
+                           const std::array<int, 3>& dirisNeg) const;
 };
 
-inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir , const std::array<int, 3>& dirIsNeg) const
+
+
+inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
+                                const std::array<int, 3>& dirIsNeg) const
 {
     // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
