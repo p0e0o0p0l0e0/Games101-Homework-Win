@@ -234,8 +234,14 @@ inline Intersection Triangle::getIntersection(Ray ray)
     // TODO find ray triangle intersection
     if (t_tmp + EPSILON < 0)
         return inter;
-    inter.coords = Vector3f(1 - u - v, u, v);
-    ray.t = t_tmp;
+    
+    inter.happened = true;
+	//inter.coords = Vector3f(1 - u - v, u, v);
+	inter.coords = Vector3f(ray.origin + t_tmp * ray.direction); 
+    inter.normal = this->normal;
+    inter.m = this->m;
+    inter.obj = this;
+    inter.distance = t_tmp;
 
     return inter;
 }
