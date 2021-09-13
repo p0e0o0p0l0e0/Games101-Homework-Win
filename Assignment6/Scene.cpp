@@ -56,7 +56,7 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         return Vector3f(0.0,0.0,0.0);
     }
     Intersection intersection = Scene::intersect(ray);
-    if (intersection.happened)
+    if (!intersection.happened)
     {
         return this->backgroundColor;
     }
