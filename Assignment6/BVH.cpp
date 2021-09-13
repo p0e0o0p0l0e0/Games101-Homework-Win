@@ -98,11 +98,11 @@ Intersection BVHAccel::Intersect(const Ray& ray) const
     Intersection isect;
     if (!root)
         return isect;
-    isect = BVHAccel::getIntersection(root, ray);
+    isect = BVHAccel::getBVHIntersection(root, ray);
     return isect;
 }
 
-Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
+Intersection BVHAccel::getBVHIntersection(BVHBuildNode* node, const Ray& ray) const
 {
     // TODO Traverse the BVH to find intersection
 
@@ -112,7 +112,7 @@ Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
         return result;
     if (node->object)
     {
-        result = node->object->getIntersection(ray);
+        result = node->object->getObjectIntersection(ray);
     }
     else
     {
@@ -120,11 +120,11 @@ Intersection BVHAccel::getIntersection(BVHBuildNode* node, const Ray& ray) const
         Intersection hit2;
         if (node->right != nullptr)
         {
-            hit1 = getIntersection(node->right, ray);
+            hit1 = getBVHIntersection(node->right, ray);
         }
         if (node->left != nullptr)
         {
-            hit2 = getIntersection(node->left, ray);
+            hit2 = getBVHIntersection(node->left, ray);
         }
         result = hit1.distance < hit2.distance ? hit1 : hit2;
     }

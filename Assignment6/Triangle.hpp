@@ -59,7 +59,7 @@ public:
     bool intersect(const Ray& ray) override;
     bool intersect(const Ray& ray, float& tnear,
                    uint32_t& index) const override;
-    Intersection getIntersection(Ray ray) override;
+    Intersection getObjectIntersection(Ray ray) override;
     void getSurfaceProperties(const Vector3f& P, const Vector3f& I,
                               const uint32_t& index, const Vector2f& uv,
                               Vector3f& N, Vector2f& st) const override
@@ -175,7 +175,7 @@ public:
                     Vector3f(0.937, 0.937, 0.231), pattern);
     }
 
-    Intersection getIntersection(Ray ray)
+    Intersection getObjectIntersection(Ray ray)
     {
         Intersection intersec;
 
@@ -208,7 +208,7 @@ inline bool Triangle::intersect(const Ray& ray, float& tnear,
 
 inline Bounds3 Triangle::getBounds() { return Union(Bounds3(v0, v1), v2); }
 
-inline Intersection Triangle::getIntersection(Ray ray)
+inline Intersection Triangle::getObjectIntersection(Ray ray)
 {
     Intersection inter;
 
