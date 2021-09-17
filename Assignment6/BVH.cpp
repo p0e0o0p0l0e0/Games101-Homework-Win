@@ -143,12 +143,15 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
     }
     else
     {
-        Bounds3 totalBounds;
+        Bounds3 totalBounds, centroidBounds;
         for (int i = 0; i < objects.size(); ++i)
-            totalBounds = Union(totalBounds, objects[i]->getBounds().Centroid());
+        {
+            totalBounds = Union(centroidBounds, objects[i]->getBounds());
+            centroidBounds = Union(centroidBounds, objects[i]->getBounds().Centroid());
+        }
 
         int bucketCount = 32;
-        Vector3f unitDiagonal = totalBounds.Diagonal() / bucketCount;
+        Vector3f unitDiagonal = centroidBounds.Diagonal() / bucketCount;
 
         std::vector<Object*> objectsA = {};
         std::vector<Object*> objectsB = {};
@@ -160,7 +163,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
             std::vector<Object*> tempObjectsA = {};
             std::vector<Object*> tempObjectsB = {};
             Bounds3 tempBoundsA, tempBoundsB;
-            float splitX = totalBounds.pMin.x + i * unitDiagonal.x;
+            float splitX = centroidBounds.pMin.x + i * unitDiagonal.x;
             for (int j = 0; j < objects.size(); j++)
             {
                 Bounds3 bounds = objects[j]->getBounds();
