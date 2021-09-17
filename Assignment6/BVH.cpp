@@ -12,7 +12,14 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
     if (primitives.empty())
         return;
 
-    root = recursiveBuild(primitives);
+    if (splitMethod == SplitMethod::NAIVE)
+    {
+        root = recursiveBuild(primitives);
+    }
+    else if(splitMethod == SplitMethod::SAH)
+    {
+        root = recursiveSAHBuild(primitives);
+    }
 
     time(&stop);
     double diff = difftime(stop, start);
@@ -88,6 +95,107 @@ BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
         node->right = recursiveBuild(rightshapes);
 
         node->bounds = Union(node->left->bounds, node->right->bounds);
+    }
+
+    return node;
+}
+
+float BoundsArea(Bounds3 bound)
+{
+    Vector3f diagonal = bound.Diagonal();
+    float area = 2 * (diagonal.x * diagonal.y + diagonal.x * diagonal.z + diagonal.y * diagonal.z);
+    return area;
+}
+
+float CalculateCost(Bounds3 bounds, std::vector<Object*> objects)
+{
+    float objectsArea = 0.0f;
+    for (int i = 0; i < objects.size(); i++)
+    {
+        objectsArea += BoundsArea(objects[i]->getBounds());
+    }
+    return objects.size() * objectsArea / BoundsArea(bounds);
+}
+
+BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
+{
+    BVHBuildNode* node = new BVHBuildNode();
+    if (objects.empty())
+        return node;
+
+    Bounds3 bounds;
+    for (int i = 0; i < objects.size(); ++i)
+        bounds = Union(bounds, objects[i]->getBounds());
+    if (objects.size() == 1) {
+        // Create leaf _BVHBuildNode_
+        node->bounds = objects[0]->getBounds();
+        node->object = objects[0];
+        node->left = nullptr;
+        node->right = nullptr;
+        return node;
+    }
+    else if (objects.size() == 2) {
+        node->left = recursiveSAHBuild(std::vector{ objects[0] });
+        node->right = recursiveSAHBuild(std::vector{ objects[1] });
+
+        node->bounds = Union(node->left->bounds, node->right->bounds);
+        return node;
+    }
+    else
+    {
+        Bounds3 totalBounds;
+        for (int i = 0; i < objects.size(); ++i)
+            totalBounds = Union(totalBounds, objects[i]->getBounds().Centroid());
+
+        int bucketCount = 32;
+        Vector3f unitDiagonal = totalBounds.Diagonal() / bucketCount;
+
+        std::vector<Object*> objectsA = {};
+        std::vector<Object*> objectsB = {};
+        float minCost = std::numeric_limits<float>::infinity();
+
+        // x 轴
+        for (int i = 1; i < bucketCount; i++)
+        {
+            std::vector<Object*> tempObjectsA = {};
+            std::vector<Object*> tempObjectsB = {};
+            Bounds3 tempBoundsA, tempBoundsB;
+            float splitX = totalBounds.pMin.x + i * unitDiagonal.x;
+            for (int j = 0; j < objects.size(); j++)
+            {
+                Bounds3 bounds = objects[j]->getBounds();
+                Vector3f centroid = bounds.Centroid();
+                if (centroid.x <= splitX)
+                {
+                    tempObjectsA.push_back(objects[j]);
+                    tempBoundsA = Union(tempBoundsA, bounds);
+                }
+                else
+                {
+                    tempObjectsB.push_back(objects[j]);
+                    tempBoundsB = Union(tempBoundsB, bounds);;
+                }
+            }
+            if (tempObjectsA.empty() || tempObjectsB.empty())
+            {
+                continue;
+            }
+            float cost = CalculateCost(tempBoundsA, tempObjectsA) + CalculateCost(tempBoundsB, tempObjectsB);
+            if (cost < minCost)
+            {
+                minCost = cost;
+                objectsA.clear();
+                objectsB.clear();
+                objectsA.swap(tempObjectsA);
+                //objectsB.swap(tempObjectsB);
+                //objectsA.assign(tempObjectsA.begin(), tempObjectsA.end()); // 两种写法均可以
+                objectsB.assign(tempObjectsB.begin(), tempObjectsB.end());
+            }
+        }
+        
+        node->left = recursiveSAHBuild(objectsA);
+        node->right = recursiveSAHBuild(objectsB);
+        node->bounds = totalBounds;
     }
 
     return node;
