@@ -187,9 +187,9 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
                 objectsA.clear();
                 objectsB.clear();
                 objectsA.swap(tempObjectsA);
-                //objectsB.swap(tempObjectsB);
+                objectsB.swap(tempObjectsB);
                 //objectsA.assign(tempObjectsA.begin(), tempObjectsA.end()); // 两种写法均可以
-                objectsB.assign(tempObjectsB.begin(), tempObjectsB.end());
+                //objectsB.assign(tempObjectsB.begin(), tempObjectsB.end());
             }
         }
         
