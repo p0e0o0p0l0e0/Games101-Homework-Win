@@ -12,14 +12,7 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
     if (primitives.empty())
         return;
 
-    if (splitMethod == SplitMethod::NAIVE)
-    {
-        root = recursiveBuild(primitives);
-    }
-    else
-    {
-        buckets = recursiveBuildSAH(primitives);
-    }
+    root = recursiveBuild(primitives);
 
     time(&stop);
     double diff = difftime(stop, start);
@@ -30,98 +23,6 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
     printf(
         "\rBVH Generation complete: \nTime Taken: %i hrs, %i mins, %i secs\n\n",
         hrs, mins, secs);
-}
-
-SAHBuildBucket* GetNearestBucket(std::vector<SAHBuildBucket*> buckets, Object* object, int dim)
-{
-    SAHBuildBucket* bucket = buckets[0];
-    float minDistance = std::numeric_limits<float>::infinity();
-    float tempValue = 0.0f;
-    for (int i = 0; i < buckets.size(); i++)
-    {
-        switch (dim)
-        {
-        case 0:
-            tempValue = std::abs(buckets[i]->bounds.Centroid().x - object->getBounds().Centroid().x);
-            if (tempValue < minDistance)
-            {
-                bucket = buckets[i];
-                minDistance = tempValue;
-            }
-            break;
-        case 1:
-            tempValue = std::abs(buckets[i]->bounds.Centroid().y - object->getBounds().Centroid().y);
-            if (tempValue < minDistance)
-            {
-                bucket = buckets[i];
-                minDistance = tempValue;
-            }
-            break;
-        case 2:
-            tempValue = std::abs(buckets[i]->bounds.Centroid().z - object->getBounds().Centroid().z);
-            if (tempValue < minDistance)
-            {
-                bucket = buckets[i];
-                minDistance = tempValue;
-            }
-            break;
-        }
-    }
-    return bucket;
-}
-
-std::vector<SAHBuildBucket*> CreateBuckets(Bounds3 totalBounds, int size, int dim)
-{
-    std::vector<SAHBuildBucket*> buckets = {};
-    Vector3f diagonal = totalBounds.Diagonal() / size;
-    for (int i = 0; i < size; i++)
-    {
-        SAHBuildBucket* bucket = new SAHBuildBucket();
-        bucket->bounds.pMin = totalBounds.pMin;
-        bucket->bounds.pMax = totalBounds.pMax;
-        switch (dim)
-        {
-        case 0:
-            bucket->bounds.pMin.x = totalBounds.pMin.x + i * diagonal.x;
-            bucket->bounds.pMax.x = totalBounds.pMin.x + (i + 1) * diagonal.x;
-            break;
-        case 1:
-            bucket->bounds.pMin.y = totalBounds.pMin.y + i * diagonal.y;
-            bucket->bounds.pMax.y = totalBounds.pMin.y + (i + 1) * diagonal.y;
-            break;
-        case 2:
-            bucket->bounds.pMin.z = totalBounds.pMin.z + i * diagonal.z;
-            bucket->bounds.pMax.z = totalBounds.pMin.z + (i + 1) * diagonal.z;
-            break;
-        }
-        buckets.push_back(bucket);
-    }
-    return buckets;
-}
-
-std::vector<SAHBuildBucket*> BVHAccel::recursiveBuildSAH(std::vector<Object*> objects)
-{
-    Bounds3 totalBounds;
-    for (int i = 0; i < objects.size(); ++i)
-        totalBounds = Union(totalBounds, objects[i]->getBounds());
-    int dim = totalBounds.maxExtent(); // 0 x轴更长，1 y轴更长，2 z轴更长，下面按照最长边的轴对objects进行排序，再分成两份
-    int bucketCount = 32;
-    std::vector<SAHBuildBucket*> buckets = CreateBuckets(totalBounds, bucketCount, dim);
-
-    for (int i = 0; i < objects.size(); i++)
-    {
-        SAHBuildBucket* bucket = GetNearestBucket(buckets, objects[i], dim);
-        bucket->bounds = Union(bucket->bounds, objects[i]->getBounds());
-        bucket->objects.push_back(objects[i]);
-    }
-    for (int i = 0; i < buckets.size(); i++)
-    {
-        if (buckets[i]->objects.size() > 0)
-        {
-            buckets[i]->root = BVHAccel::recursiveBuild(buckets[i]->objects);
-        }
-    }
-    return buckets;
 }
 
 BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
@@ -195,47 +96,10 @@ BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
 Intersection BVHAccel::Intersect(const Ray& ray) const
 {
     Intersection isect;
-    if (this->splitMethod == SplitMethod::NAIVE)
-    {
-        if (!root)
-            return isect;
-        isect = BVHAccel::getBVHIntersection(root, ray);
+    if (!root)
         return isect;
-    }
-    else
-    {
-        if (buckets.size() == 0)
-            return isect;
-        isect = BVHAccel::getSAHIntersection(buckets, ray);
-        return isect;
-    }
-}
-
-Intersection BVHAccel::getSAHIntersection(std::vector<SAHBuildBucket*> buckets, const Ray& ray) const
-{
-    Intersection result;
-    Intersection temp;
-    std::array<int, 3> DirIsNeg = { (int)(ray.direction.x > 0), (int)(ray.direction.y > 0), (int)(ray.direction.z > 0) };
-    for (int i = 0; i < buckets.size(); i++)
-    {
-        if (buckets[i]->objects.size() == 0)
-            continue;
-        //if (!buckets[i]->bounds.IntersectP(ray, ray.direction_inv, DirIsNeg)) // 需要先判断bvh整体是否与光线有交点，避免再去与子节点计算交点。这样会提高效率
-        //    return result;
-        temp = BVHAccel::getBVHIntersection(buckets[i]->root, ray);
-        if (!result.happened)
-        {
-            result = temp;
-        }
-        else
-        {
-            if (temp.distance < result.distance)
-            {
-                result = temp;
-            }
-        }
-    }
-    return result;
+    isect = BVHAccel::getBVHIntersection(root, ray);
+    return isect;
 }
 
 Intersection BVHAccel::getBVHIntersection(BVHBuildNode* node, const Ray& ray) const

@@ -16,7 +16,6 @@
 #include "Vector.hpp"
 
 struct BVHBuildNode;
-struct SAHBuildBucket;
 // BVHAccel Forward Declarations
 struct BVHPrimitiveInfo;
 
@@ -33,12 +32,8 @@ public:
     Bounds3 WorldBound() const;
     ~BVHAccel();
 
-    std::vector<SAHBuildBucket*> buckets;
-    std::vector<SAHBuildBucket*> recursiveBuildSAH(std::vector<Object*> objects);
-    Intersection getBVHIntersection(BVHBuildNode* node, const Ray& ray)const;
-
     Intersection Intersect(const Ray &ray) const;
-    Intersection getSAHIntersection(std::vector<SAHBuildBucket*> buckets, const Ray& ray)const;
+    Intersection getBVHIntersection(BVHBuildNode* node, const Ray& ray)const;
     bool IntersectP(const Ray &ray) const;
     BVHBuildNode* root;
 
@@ -64,19 +59,6 @@ public:
         bounds = Bounds3();
         left = nullptr;right = nullptr;
         object = nullptr;
-    }
-};
-
-struct SAHBuildBucket {
-    BVHBuildNode* root;
-    Bounds3 bounds;
-    std::vector<Object*> objects;
-public:
-    int splitAxis = 0, firstPrimOffset = 0, nPrimitives = 0;
-    // BVHBuildNode Public Methods
-    SAHBuildBucket() {
-        bounds = Bounds3();
-        objects = {};
     }
 };
 
