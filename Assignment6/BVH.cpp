@@ -160,7 +160,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         {
             std::vector<Object*> tempObjectsA = {};
             std::vector<Object*> tempObjectsB = {};
-            Bounds3 tempBoundsA, tempBoundsB;
+            //Bounds3 tempBoundsA, tempBoundsB;
             float splitLine = centroidBounds.pMin[dim] + i * dimExtent;
             for (int j = 0; j < objects.size(); j++)
             {
@@ -169,15 +169,15 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
                 if (centroid[dim] <= splitLine)
                 {
                     tempObjectsA.push_back(objects[j]);
-                    tempBoundsA = Union(tempBoundsA, bounds);
+                    //tempBoundsA = Union(tempBoundsA, bounds); 
                 }
                 else
                 {
                     tempObjectsB.push_back(objects[j]);
-                    tempBoundsB = Union(tempBoundsB, bounds);;
+                    //tempBoundsB = Union(tempBoundsB, bounds);;
                 }
             }
-            float cost = CalculateCost(tempBoundsA, tempObjectsA) + CalculateCost(tempBoundsB, tempObjectsB);
+            float cost = CalculateCost(centroidBounds, tempObjectsA) + CalculateCost(centroidBounds, tempObjectsB);
             if (cost < minCost)
             {
                 minCost = cost;
