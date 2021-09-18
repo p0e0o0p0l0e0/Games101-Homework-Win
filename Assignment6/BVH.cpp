@@ -26,10 +26,11 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
     int hrs = (int)diff / 3600;
     int mins = ((int)diff / 60) - (hrs * 60);
     int secs = (int)diff - (hrs * 3600) - (mins * 60);
+    float milsecs = (int)diff - (hrs * 3600) - (mins * 60) - secs;
 
     printf(
-        "BVH Generation complete: \nTime Taken: %i hrs, %i mins, %i secs\n\n",
-        hrs, mins, secs);
+        "BVH Generation complete: \nTime Taken:  %i hrs, %i mins, %i secs, %f milsecs\n\n",
+        hrs, mins, secs, milsecs);
 }
 
 BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
@@ -137,9 +138,9 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         for (int i = 0; i < objects.size(); ++i)
         {
             totalBounds = Union(totalBounds, objects[i]->getBounds());
-            centroidBounds = Union(centroidBounds, objects[i]->getBounds().Centroid());
+          
+  centroidBounds = Union(centroidBounds, objects[i]->getBounds().Centroid());
         }
-
         int bucketCount = 32;
 
         std::vector<Object*> objectsA = {};
@@ -147,36 +148,39 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         float minCost = std::numeric_limits<float>::max();
 
         int dim = centroidBounds.maxExtent();
-        float dimExtent = centroidBounds.Diagonal()[dim] / bucketCount; // 用质心bounds划分buckets，不会出现所有objects都在同一侧的情况
-
-        for (int i = 1; i < bucketCount; i++)
+        for (dim = 0; dim < 3; dim++)
         {
-            std::vector<Object*> tempObjectsA = {};
-            std::vector<Object*> tempObjectsB = {};
-            float splitLine = centroidBounds.pMin[dim] + i * dimExtent;
-            for (int j = 0; j < objects.size(); j++)
+            float dimExtent = centroidBounds.Diagonal()[dim] / bucketCount; // 用质心bounds划分buckets，不会出现所有objects都在同一侧的情况
+
+            for (int i = 1; i < bucketCount; i++)
             {
-                Bounds3 bounds = objects[j]->getBounds();
-                Vector3f centroid = bounds.Centroid();
-                if (centroid[dim] <= splitLine)
+                std::vector<Object*> tempObjectsA = {};
+                std::vector<Object*> tempObjectsB = {};
+                float splitLine = centroidBounds.pMin[dim] + i * dimExtent;
+                for (int j = 0; j < objects.size(); j++)
                 {
-                    tempObjectsA.push_back(objects[j]);
+                    Bounds3 bounds = objects[j]->getBounds();
+                    Vector3f centroid = bounds.Centroid();
+                    if (centroid[dim] <= splitLine)
+                    {
+                        tempObjectsA.push_back(objects[j]);
+                    }
+                    else
+                    {
+                        tempObjectsB.push_back(objects[j]);
+                    }
                 }
-                else
+                float cost = CalculateCost(centroidBounds, tempObjectsA) + CalculateCost(centroidBounds, tempObjectsB);
+                if (cost < minCost)
                 {
-                    tempObjectsB.push_back(objects[j]);
+                    minCost = cost;
+                    objectsA.clear();
+                    objectsB.clear();
+                    objectsA.swap(tempObjectsA);
+                    objectsB.swap(tempObjectsB);
+                    //objectsA.assign(tempObjectsA.begin(), tempObjectsA.end()); // 两种写法均可以
+                    //objectsB.assign(tempObjectsB.begin(), tempObjectsB.end());
                 }
-            }
-            float cost = CalculateCost(centroidBounds, tempObjectsA) + CalculateCost(centroidBounds, tempObjectsB);
-            if (cost < minCost)
-            {
-                minCost = cost;
-                objectsA.clear();
-                objectsB.clear();
-                objectsA.swap(tempObjectsA);
-                objectsB.swap(tempObjectsB);
-                //objectsA.assign(tempObjectsA.begin(), tempObjectsA.end()); // 两种写法均可以
-                //objectsB.assign(tempObjectsB.begin(), tempObjectsB.end());
             }
         }
         

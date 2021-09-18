@@ -20,7 +20,7 @@ void Renderer::Render(const Scene& scene)
 
     float scale = tan(deg2rad(scene.fov * 0.5));
     float imageAspectRatio = scene.width / (float)scene.height;
-    Vector3f eye_pos(-1, 5, 10);
+    Vector3f eye_pos(-1, 5, 20);
     int m = 0;
     for (uint32_t j = 0; j < scene.height; ++j) {
         for (uint32_t i = 0; i < scene.width; ++i) {
