@@ -28,7 +28,7 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
     int secs = (int)diff - (hrs * 3600) - (mins * 60);
 
     printf(
-        "\rBVH Generation complete: \nTime Taken: %i hrs, %i mins, %i secs\n\n",
+        "BVH Generation complete: \nTime Taken: %i hrs, %i mins, %i secs\n\n",
         hrs, mins, secs);
 }
 
