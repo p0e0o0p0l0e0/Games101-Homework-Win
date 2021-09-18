@@ -100,21 +100,14 @@ BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
     return node;
 }
 
-float BoundsArea(Bounds3 bound)
-{
-    Vector3f diagonal = bound.Diagonal();
-    float area = 2 * (diagonal.x * diagonal.y + diagonal.x * diagonal.z + diagonal.y * diagonal.z);
-    return area;
-}
-
 float CalculateCost(Bounds3 bounds, std::vector<Object*> objects)
 {
     float objectsArea = 0.0f;
     for (int i = 0; i < objects.size(); i++)
     {
-        objectsArea += BoundsArea(objects[i]->getBounds());
+        objectsArea += objects[i]->getBounds().SurfaceArea();
     }
-    return objects.size() * objectsArea / BoundsArea(bounds);
+    return objects.size() * objectsArea / bounds.SurfaceArea();
 }
 
 BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
@@ -160,7 +153,6 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         {
             std::vector<Object*> tempObjectsA = {};
             std::vector<Object*> tempObjectsB = {};
-            //Bounds3 tempBoundsA, tempBoundsB;
             float splitLine = centroidBounds.pMin[dim] + i * dimExtent;
             for (int j = 0; j < objects.size(); j++)
             {
@@ -169,12 +161,10 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
                 if (centroid[dim] <= splitLine)
                 {
                     tempObjectsA.push_back(objects[j]);
-                    //tempBoundsA = Union(tempBoundsA, bounds); 
                 }
                 else
                 {
                     tempObjectsB.push_back(objects[j]);
-                    //tempBoundsB = Union(tempBoundsB, bounds);;
                 }
             }
             float cost = CalculateCost(centroidBounds, tempObjectsA) + CalculateCost(centroidBounds, tempObjectsB);
