@@ -123,9 +123,6 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
     if (objects.empty())
         return node;
 
-    Bounds3 bounds;
-    for (int i = 0; i < objects.size(); ++i)
-        bounds = Union(bounds, objects[i]->getBounds());
     if (objects.size() == 1) {
         // Create leaf _BVHBuildNode_
         node->bounds = objects[0]->getBounds();
@@ -146,7 +143,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         Bounds3 totalBounds, centroidBounds;
         for (int i = 0; i < objects.size(); ++i)
         {
-            totalBounds = Union(centroidBounds, objects[i]->getBounds());
+            //totalBounds = Union(totalBounds, objects[i]->getBounds());
             centroidBounds = Union(centroidBounds, objects[i]->getBounds().Centroid());
         }
 
@@ -157,7 +154,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         float minCost = std::numeric_limits<float>::max();
 
         int dim = centroidBounds.maxExtent();
-        float dimExtent = centroidBounds.Diagonal()[dim] / bucketCount;
+        float dimExtent = centroidBounds.Diagonal()[dim] / bucketCount; // 用质心bounds划分buckets，不会出现所有objects都在同一侧的情况
 
         for (int i = 1; i < bucketCount; i++)
         {
@@ -180,10 +177,6 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
                     tempBoundsB = Union(tempBoundsB, bounds);;
                 }
             }
-            if (tempObjectsA.empty() || tempObjectsB.empty())
-            {
-                continue;
-            }
             float cost = CalculateCost(tempBoundsA, tempObjectsA) + CalculateCost(tempBoundsB, tempObjectsB);
             if (cost < minCost)
             {
@@ -199,7 +192,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         
         node->left = recursiveSAHBuild(objectsA);
         node->right = recursiveSAHBuild(objectsB);
-        node->bounds = totalBounds;
+        node->bounds = Union(node->left->bounds, node->right->bounds); //totalBounds;
     }
 
     return node;
