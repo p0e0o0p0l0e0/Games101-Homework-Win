@@ -13,15 +13,11 @@ int main(int argc, char** argv)
 {
     Scene scene(1280, 960);
 
-    std::cout << "Object : ";
     MeshTriangle bunny("../models/bunny/bunny.obj");
-    MeshTriangle spot("../models/spot/spot_triangulated_good.obj");
 
     scene.Add(&bunny);
-    scene.Add(&spot);
     scene.Add(std::make_unique<Light>(Vector3f(-20, 70, 20), 1));
     scene.Add(std::make_unique<Light>(Vector3f(20, 70, 20), 1));
-    std::cout << "Scene : ";
     scene.buildBVH();
 
     Renderer r;
@@ -34,7 +30,6 @@ int main(int argc, char** argv)
     std::cout << "Time taken: " << std::chrono::duration_cast<std::chrono::hours>(stop - start).count() << " hours\n";
     std::cout << "          : " << std::chrono::duration_cast<std::chrono::minutes>(stop - start).count() << " minutes\n";
     std::cout << "          : " << std::chrono::duration_cast<std::chrono::seconds>(stop - start).count() << " seconds\n";
-    std::cout << "          : " << (stop - start).count() << " diff\n";
 
     return 0;
 }

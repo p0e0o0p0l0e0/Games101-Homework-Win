@@ -26,11 +26,10 @@ BVHAccel::BVHAccel(std::vector<Object*> p, int maxPrimsInNode,
     int hrs = (int)diff / 3600;
     int mins = ((int)diff / 60) - (hrs * 60);
     int secs = (int)diff - (hrs * 3600) - (mins * 60);
-    float milsecs = (int)diff - (hrs * 3600) - (mins * 60) - secs;
 
     printf(
-        "BVH Generation complete: \nTime Taken:  %i hrs, %i mins, %i secs, %f milsecs\n\n",
-        hrs, mins, secs, milsecs);
+        "\rBVH Generation complete: \nTime Taken: %i hrs, %i mins, %i secs\n\n",
+        hrs, mins, secs);
 }
 
 BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
@@ -61,7 +60,7 @@ BVHBuildNode* BVHAccel::recursiveBuild(std::vector<Object*> objects)
         for (int i = 0; i < objects.size(); ++i)
             centroidBounds =
                 Union(centroidBounds, objects[i]->getBounds().Centroid());
-        int dim = centroidBounds.maxExtent(); // 0 xÖá¸ü³¤£¬1 yÖá¸ü³¤£¬2 zÖá¸ü³¤£¬ÏÂÃæ°´ÕÕ×î³¤±ßµÄÖá¶Ôobjects½øĞĞÅÅĞò£¬ÔÙ·Ö³ÉÁ½·İ
+        int dim = centroidBounds.maxExtent(); // 0 xè½´æ›´é•¿ï¼Œ1 yè½´æ›´é•¿ï¼Œ2 zè½´æ›´é•¿ï¼Œä¸‹é¢æŒ‰ç…§æœ€é•¿è¾¹çš„è½´å¯¹objectsè¿›è¡Œæ’åºï¼Œå†åˆ†æˆä¸¤ä»½
         switch (dim) {
         case 0:
             std::sort(objects.begin(), objects.end(), [](auto f1, auto f2) {
@@ -111,6 +110,7 @@ float CalculateCost(Bounds3 bounds, std::vector<Object*> objects)
     return objects.size() * objectsArea / bounds.SurfaceArea();
 }
 
+int bucketCount = 32;
 BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
 {
     BVHBuildNode* node = new BVHBuildNode();
@@ -138,19 +138,17 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         for (int i = 0; i < objects.size(); ++i)
         {
             totalBounds = Union(totalBounds, objects[i]->getBounds());
-          
-  centroidBounds = Union(centroidBounds, objects[i]->getBounds().Centroid());
+            centroidBounds = Union(centroidBounds, objects[i]->getBounds().Centroid());
         }
-        int bucketCount = 32;
 
         std::vector<Object*> objectsA = {};
         std::vector<Object*> objectsB = {};
         float minCost = std::numeric_limits<float>::max();
 
-        int dim = centroidBounds.maxExtent();
-        for (dim = 0; dim < 3; dim++)
+        //int dim = centroidBounds.maxExtent(); // ä»…åœ¨ç¬¬ä¸€æ¬¡é€‰å®šè½´åä¸å†æ”¹å˜
+        for (int dim = 0; dim < 3; dim++) // x y zè½´åˆ†åˆ«åˆ’åˆ†è®¡ç®—æœ€å°cost
         {
-            float dimExtent = centroidBounds.Diagonal()[dim] / bucketCount; // ÓÃÖÊĞÄbounds»®·Öbuckets£¬²»»á³öÏÖËùÓĞobjects¶¼ÔÚÍ¬Ò»²àµÄÇé¿ö
+            float dimExtent = centroidBounds.Diagonal()[dim] / bucketCount; // ç”¨è´¨å¿ƒboundsåˆ’åˆ†bucketsï¼Œä¸ä¼šå‡ºç°æ‰€æœ‰objectséƒ½åœ¨åŒä¸€ä¾§çš„æƒ…å†µ
 
             for (int i = 1; i < bucketCount; i++)
             {
@@ -178,7 +176,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
                     objectsB.clear();
                     objectsA.swap(tempObjectsA);
                     objectsB.swap(tempObjectsB);
-                    //objectsA.assign(tempObjectsA.begin(), tempObjectsA.end()); // Á½ÖÖĞ´·¨¾ù¿ÉÒÔ
+                    //objectsA.assign(tempObjectsA.begin(), tempObjectsA.end()); // ä¸¤ç§å†™æ³•å‡å¯ä»¥
                     //objectsB.assign(tempObjectsB.begin(), tempObjectsB.end());
                 }
             }
@@ -207,7 +205,7 @@ Intersection BVHAccel::getBVHIntersection(BVHBuildNode* node, const Ray& ray) co
 
     Intersection result;
     std::array<int, 3> DirIsNeg = { (int)(ray.direction.x > 0), (int)(ray.direction.y > 0), (int)(ray.direction.z > 0) };
-    if (!node->bounds.IntersectP(ray, ray.direction_inv, DirIsNeg)) // ĞèÒªÏÈÅĞ¶ÏbvhÕûÌåÊÇ·ñÓë¹âÏßÓĞ½»µã£¬±ÜÃâÔÙÈ¥Óë×Ó½Úµã¼ÆËã½»µã¡£ÕâÑù»áÌá¸ßĞ§ÂÊ
+    if (!node->bounds.IntersectP(ray, ray.direction_inv, DirIsNeg)) // éœ€è¦å…ˆåˆ¤æ–­bvhæ•´ä½“æ˜¯å¦ä¸å…‰çº¿æœ‰äº¤ç‚¹ï¼Œé¿å…å†å»ä¸å­èŠ‚ç‚¹è®¡ç®—äº¤ç‚¹ã€‚è¿™æ ·ä¼šæé«˜æ•ˆç‡
         return result;
     if (node->object)
     {
