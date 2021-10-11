@@ -8,6 +8,7 @@
 #include "Vector.hpp"
 #include <limits>
 #include <array>
+#include "Intersection.hpp"
 
 class Bounds3
 {
@@ -96,7 +97,28 @@ inline bool Bounds3::IntersectP(const Ray& ray, const Vector3f& invDir,
     // invDir: ray direction(x,y,z), invDir=(1.0/x,1.0/y,1.0/z), use this because Multiply is faster that Division
     // dirIsNeg: ray direction(x,y,z), dirIsNeg=[int(x>0),int(y>0),int(z>0)], use this to simplify your logic
     // TODO test if ray bound intersects
+    float txmin, txmax, tymin, tymax, tzmin, tzmax;
+    txmin = (pMin.x - ray.origin.x) * invDir.x;
+    txmax = (pMax.x - ray.origin.x) * invDir.x;
+    tymin = (pMin.y - ray.origin.y) * invDir.y;
+    tymax = (pMax.y - ray.origin.y) * invDir.y;
+    tzmin = (pMin.z - ray.origin.z) * invDir.z;
+    tzmax = (pMax.z - ray.origin.z) * invDir.z;
+    float t_enter[3], t_exit[3];
+    t_enter[0] = dirIsNeg[0] != 0 ? txmin : txmax;
+    t_enter[1] = dirIsNeg[1] != 0 ? tymin : tymax;
+    t_enter[2] = dirIsNeg[2] != 0 ? tzmin : tzmax;
+    t_exit[0] = dirIsNeg[0] != 0 ? txmax : txmin;
+    t_exit[1] = dirIsNeg[1] != 0 ? tymax : tymin;
+    t_exit[2] = dirIsNeg[2] != 0 ? tzmax : tzmin;
 
+    float tenter = fmax(t_enter[0], fmax(t_enter[1], t_enter[2]));
+    float texit = fmin(t_exit[0], fmin(t_exit[1], t_exit[2]));
+    if (tenter > texit || texit < 0)
+    {
+        return false;
+    }
+    return true;
 }
 
 inline Bounds3 Union(const Bounds3& b1, const Bounds3& b2)

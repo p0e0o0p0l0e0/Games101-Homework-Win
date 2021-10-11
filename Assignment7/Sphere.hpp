@@ -46,7 +46,7 @@ public:
 
         return true;
     }
-    Intersection getIntersection(Ray ray){
+    Intersection getObjectIntersection(Ray ray){
         Intersection result;
         result.happened = false;
         Vector3f L = ray.origin - center;

@@ -61,7 +61,7 @@ public:
     bool intersect(const Ray& ray) override;
     bool intersect(const Ray& ray, float& tnear,
                    uint32_t& index) const override;
-    Intersection getIntersection(Ray ray) override;
+    Intersection getObjectIntersection(Ray ray) override;
     void getSurfaceProperties(const Vector3f& P, const Vector3f& I,
                               const uint32_t& index, const Vector2f& uv,
                               Vector3f& N, Vector2f& st) const override
@@ -132,7 +132,7 @@ public:
             ptrs.push_back(&tri);
             area += tri.area;
         }
-        bvh = new BVHAccel(ptrs);
+        bvh = new BVHAccel(ptrs, 1, BVHAccel::SplitMethod::SAH);
     }
 
     bool intersect(const Ray& ray) { return true; }
@@ -184,7 +184,7 @@ public:
                     Vector3f(0.937, 0.937, 0.231), pattern);
     }
 
-    Intersection getIntersection(Ray ray)
+    Intersection getObjectIntersection(Ray ray)
     {
         Intersection intersec;
 
@@ -229,11 +229,11 @@ inline bool Triangle::intersect(const Ray& ray, float& tnear,
 
 inline Bounds3 Triangle::getBounds() { return Union(Bounds3(v0, v1), v2); }
 
-inline Intersection Triangle::getIntersection(Ray ray)
+inline Intersection Triangle::getObjectIntersection(Ray ray)
 {
     Intersection inter;
 
-    if (dotProduct(ray.direction, normal) > 0)
+    if (dotProduct(ray.direction, normal) > 0) // 是说一定有交点吗？但也不一定在三角形内吧？
         return inter;
     double u, v, t_tmp = 0;
     Vector3f pvec = crossProduct(ray.direction, e2);
@@ -253,6 +253,15 @@ inline Intersection Triangle::getIntersection(Ray ray)
     t_tmp = dotProduct(e2, qvec) * det_inv;
 
     // TODO find ray triangle intersection
+    if (t_tmp + EPSILON < 0)
+        return inter;
+    
+    inter.happened = true;
+    inter.coords = ray.origin + t_tmp * ray.direction;//ray(t) 也可以
+    inter.normal = this->normal;
+    inter.m = this->m;
+    inter.obj = this;
+    inter.distance = t_tmp;
 
     return inter;
 }

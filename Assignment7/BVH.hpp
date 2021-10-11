@@ -33,12 +33,13 @@ public:
     ~BVHAccel();
 
     Intersection Intersect(const Ray &ray) const;
-    Intersection getIntersection(BVHBuildNode* node, const Ray& ray)const;
+    Intersection getBVHIntersection(BVHBuildNode* node, const Ray& ray)const;
     bool IntersectP(const Ray &ray) const;
     BVHBuildNode* root;
 
     // BVHAccel Private Methods
     BVHBuildNode* recursiveBuild(std::vector<Object*>objects);
+    BVHBuildNode* recursiveSAHBuild(std::vector<Object*>objects);
 
     // BVHAccel Private Data
     const int maxPrimsInNode;
