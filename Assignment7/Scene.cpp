@@ -57,11 +57,54 @@ bool Scene::trace(
     return (*hitObject != nullptr);
 }
 
+float P_RR = 0.6f;
 // Implementation of Path Tracing
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
     // TO DO Implement Path Tracing Algorithm here
 
-    Vector3f result;
-    return result;
+    Intersection intersection = Scene::intersect(ray);
+    if (!intersection.happened)
+    {
+        return this->backgroundColor;
+    }
+    Vector3f L_dir, L_indir;
+
+    Object* hitObject = intersection.obj;
+    Vector3f hitPoint = intersection.coords;
+    Material* m = intersection.m;
+    Vector3f N = intersection.normal;
+    Vector3f wo = ray.direction;
+    Vector3f wi = m->sample(ray.direction, N);
+
+    // Sample Light
+    Intersection inter;
+    float pdf_light;
+    sampleLight(inter, pdf_light);
+    Vector3f lightPos = inter.coords;
+    Ray ray2 = Ray(hitPoint, lightPos - hitPoint);
+    Intersection temp = intersect(ray2);
+    //if (temp.happened && temp.obj == inter.obj)
+    if(inter.happened)
+    {
+        Vector3f NN = inter.normal; // normal
+        Material* mm = inter.m;
+        Vector3f ws = ray2.direction;
+        L_dir = mm->m_emission * mm->eval(wo, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords, hitPoint) / pdf_light;
+    }
+
+
+    // Russian Roulette(RR)
+    float ksi = (std::rand() % 100) / 100.0f;
+    if (ksi > P_RR)
+    {
+        L_indir = Vector3f(0.0f, 0.0f, 0.0f);
+    }
+    else
+    {
+        Ray ray3 = Ray(hitPoint, wi);
+        L_indir = castRay(ray3, 0) * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
+    }
+
+    return L_dir + L_indir;
 }
