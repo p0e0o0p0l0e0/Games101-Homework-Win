@@ -84,6 +84,7 @@ public:
         pos.normal = dir;
         pos.emit = m->getEmission();
         pdf = 1.0f / area;
+        pos.m = this->m;
     }
     float getArea(){
         return area;

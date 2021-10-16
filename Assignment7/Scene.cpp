@@ -57,7 +57,7 @@ bool Scene::trace(
     return (*hitObject != nullptr);
 }
 
-float P_RR = 0.6f;
+float P_RR = 0.7f;
 // Implementation of Path Tracing
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
@@ -68,31 +68,35 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
     {
         return this->backgroundColor;
     }
+
     Vector3f L_dir, L_indir;
 
     Object* hitObject = intersection.obj;
     Vector3f hitPoint = intersection.coords;
     Material* m = intersection.m;
     Vector3f N = intersection.normal;
-    Vector3f wo = ray.direction;
+    Vector3f wo = -ray.direction;
     Vector3f wi = m->sample(ray.direction, N);
 
-    // Sample Light
-    Intersection inter;
-    float pdf_light;
-    sampleLight(inter, pdf_light);
-    Vector3f lightPos = inter.coords;
-    Ray ray2 = Ray(hitPoint, lightPos - hitPoint);
-    Intersection temp = intersect(ray2);
-    //if (temp.happened && temp.obj == inter.obj)
-    if(inter.happened)
+    if (intersection.obj->hasEmit())
     {
-        Vector3f NN = inter.normal; // normal
-        Material* mm = inter.m;
-        Vector3f ws = ray2.direction;
-        L_dir = mm->m_emission * mm->eval(wo, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords, hitPoint) / pdf_light;
+        return intersection.m->m_emission * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
     }
-
+    else
+    //if (!intersection.obj->hasEmit())
+    {
+        // Sample Light
+        Intersection inter;
+        float pdf_light;
+        sampleLight(inter, pdf_light);
+        Vector3f lightPos = inter.coords;
+        if(pdf_light > 0)
+        {
+            Vector3f NN = inter.normal;
+            Vector3f ws = m->sample(lightPos - hitPoint, NN);
+            L_dir = inter.emit * m->eval(-wi, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords, hitPoint) / pdf_light;
+        }
+    }
 
     // Russian Roulette(RR)
     float ksi = (std::rand() % 100) / 100.0f;
