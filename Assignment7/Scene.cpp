@@ -76,26 +76,16 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
     Material* m = intersection.m;
     Vector3f N = intersection.normal;
     Vector3f wo = ray.direction;
-    Vector3f wi = m->sample(wo, N);
 
-    if (intersection.obj->hasEmit())
+    Intersection inter;
+    float pdf_light;
+    sampleLight(inter, pdf_light);
+    Vector3f lightPos = inter.coords;
+    if(pdf_light > 0)
     {
-        return intersection.m->m_emission * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
-    }
-    else
-    //if (!intersection.obj->hasEmit())
-    {
-        // Sample Light
-        Intersection inter;
-        float pdf_light;
-        sampleLight(inter, pdf_light);
-        Vector3f lightPos = inter.coords;
-        if(pdf_light > 0)
-        {
-            Vector3f NN = inter.normal;
-            Vector3f ws = m->sample(lightPos - hitPoint, NN);
-            L_dir = inter.m->m_emission * m->eval(wi, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords - hitPoint, inter.coords - hitPoint) / pdf_light;
-        }
+        Vector3f NN = inter.normal;
+        Vector3f ws = m->sample(lightPos - hitPoint, NN);
+        L_dir = inter.m->m_emission * m->eval(wo, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords - hitPoint, inter.coords - hitPoint) / pdf_light;
     }
 
     // Russian Roulette(RR)
@@ -106,8 +96,13 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
     }
     else
     {
+        Vector3f wi = m->sample(wo, N);
         Ray ray3 = Ray(hitPoint, wi);
-        L_indir = castRay(ray3, 0) * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
+        Intersection inter2 = intersect(ray3);
+        if (inter2.happened && !inter2.obj->hasEmit())
+        {
+            L_indir = castRay(ray3, 0) * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
+        }
     }
 
     return L_dir + L_indir;
