@@ -94,7 +94,7 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         {
             Vector3f NN = inter.normal;
             Vector3f ws = m->sample(lightPos - hitPoint, NN);
-            L_dir = inter.emit * m->eval(-wi, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords, hitPoint) / pdf_light;
+            L_dir = inter.emit * m->eval(-wi, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords - hitPoint, inter.coords - hitPoint) / pdf_light;
         }
     }
 
