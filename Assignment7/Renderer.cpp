@@ -24,7 +24,7 @@ void Renderer::Render(const Scene& scene)
     int m = 0;
 
     // change the spp value to change sample ammount
-    int spp = 16; // Ò»¸öÏñËØsample16´Î£¬¶¼ÊÇÒ»ÑùµÄdir£¬ºóÆÚ·´Éä´ÎÊı²»Í¬ÓĞÇø±ğ¡£¶ø²»ÊÇÒ»¸öÏñËØµã²ğ·Ö³É16·Ö½øĞĞsample¡£
+    int spp = 16; // ä¸€ä¸ªåƒç´ sample16æ¬¡ï¼Œéƒ½æ˜¯ä¸€æ ·çš„dirï¼ŒåæœŸåå°„æ¬¡æ•°ä¸åŒæœ‰åŒºåˆ«ã€‚è€Œä¸æ˜¯ä¸€ä¸ªåƒç´ ç‚¹æ‹†åˆ†æˆ16åˆ†è¿›è¡Œsampleã€‚
     std::cout << "SPP: " << spp << "\n";
     for (uint32_t j = 0; j < scene.height; ++j) {
         for (uint32_t i = 0; i < scene.width; ++i) {
