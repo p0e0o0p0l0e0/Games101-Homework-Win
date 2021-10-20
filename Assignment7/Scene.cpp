@@ -57,7 +57,7 @@ bool Scene::trace(
     return (*hitObject != nullptr);
 }
 
-float P_RR = 0.7f;
+float P_RR = 0.8f;
 // Implementation of Path Tracing
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
