@@ -69,7 +69,7 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         return this->backgroundColor;
     }
 
-    Vector3f L_dir, L_indir;
+    Vector3f L_dir = 0, L_indir = 0;
 
     Object* hitObject = intersection.obj;
     Vector3f hitPoint = intersection.coords;
@@ -77,24 +77,25 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
     Vector3f N = intersection.normal;
     Vector3f wo = ray.direction;
 
+    if (hitObject->hasEmit())
+    {
+        return intersection.emit;
+    }
+
     Intersection inter;
     float pdf_light;
     sampleLight(inter, pdf_light);
     Vector3f lightPos = inter.coords;
-    if(pdf_light > 0)
+    Vector3f ws = normalize(lightPos - hitPoint);
+    Intersection inter1 = intersect(Ray(hitPoint, ws));
+    if(inter1.happened && inter1.obj->hasEmit())
     {
         Vector3f NN = inter.normal;
-        Vector3f ws = m->sample(lightPos - hitPoint, NN);
-        L_dir = inter.emit * m->eval(wo, ws, N) * dotProduct(ws, N) * dotProduct(ws, NN) / dotProduct(inter.coords - hitPoint, inter.coords - hitPoint) / pdf_light;
+        L_dir = inter.emit * m->eval(wo, ws, N) * dotProduct(ws, N) * dotProduct(-ws, NN) / dotProduct(lightPos - hitPoint, lightPos - hitPoint) / pdf_light;
     }
 
     // Russian Roulette(RR)
-    float ksi = (std::rand() % 100) / 100.0f;
-    if (ksi > P_RR)
-    {
-        L_indir = Vector3f(0.0f, 0.0f, 0.0f);
-    }
-    else
+    if (get_random_float() < P_RR)
     {
         Vector3f wi = m->sample(wo, N);
         Ray ray3 = Ray(hitPoint, wi);
