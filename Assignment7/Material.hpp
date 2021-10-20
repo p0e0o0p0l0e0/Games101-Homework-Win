@@ -153,7 +153,7 @@ float Material::pdf(const Vector3f &wi, const Vector3f &wo, const Vector3f &N){
             if (dotProduct(wo, N) > 0.0f)
                 return 0.5f / M_PI;
             else
-                return 0.0f;
+                return EPSILON;
             break;
         }
     }

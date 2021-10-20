@@ -77,7 +77,6 @@ public:
         pos.coords = v0 * (1.0f - x) + v1 * (x * (1.0f - y)) + v2 * (x * y);
         pos.normal = this->normal;
         pdf = 1.0f / area;
-        pos.m = this->m;
     }
     float getArea(){
         return area;
