@@ -64,6 +64,7 @@ public:
         result.m = this->m;
         result.obj = this;
         result.distance = t0;
+        result.emit = this->m->getEmission();
         return result;
 
     }

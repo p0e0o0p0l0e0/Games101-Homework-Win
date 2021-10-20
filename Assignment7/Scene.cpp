@@ -63,6 +63,10 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
     // TO DO Implement Path Tracing Algorithm here
 
+    if (depth > this->maxDepth) {
+        return Vector3f(0, 0, 0);
+    }
+
     Intersection intersection = Scene::intersect(ray);
     if (!intersection.happened)
     {
@@ -102,7 +106,7 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
         Intersection inter2 = intersect(ray3);
         if (inter2.happened && !inter2.obj->hasEmit())
         {
-            L_indir = castRay(ray3, 0) * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
+            L_indir = castRay(ray3, depth) * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
         }
     }
 
