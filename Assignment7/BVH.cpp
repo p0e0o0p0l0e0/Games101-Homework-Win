@@ -126,6 +126,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         node->object = objects[0];
         node->left = nullptr;
         node->right = nullptr;
+        node->area = objects[0]->getArea();
         return node;
     }
     else if (objects.size() == 2) {
@@ -133,6 +134,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         node->right = recursiveSAHBuild(std::vector{ objects[1] });
 
         node->bounds = Union(node->left->bounds, node->right->bounds);
+        node->area = node->left->area + node->right->area;
         return node;
     }
     else
@@ -188,6 +190,7 @@ BVHBuildNode* BVHAccel::recursiveSAHBuild(std::vector<Object*> objects)
         node->left = recursiveSAHBuild(objectsA);
         node->right = recursiveSAHBuild(objectsB);
         node->bounds = totalBounds;
+        node->area = node->left->area + node->right->area;
     }
 
     return node;

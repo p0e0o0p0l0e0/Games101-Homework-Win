@@ -5,8 +5,6 @@
 #include <fstream>
 #include "Scene.hpp"
 #include "Renderer.hpp"
-#include <omp.h>
-
 
 inline float deg2rad(const float& deg) { return deg * M_PI / 180.0; }
 
@@ -24,12 +22,9 @@ void Renderer::Render(const Scene& scene)
     Vector3f eye_pos(278, 273, -800);
     int m = 0;
 
-    std::cout << "Core Count " << omp_get_num_procs() << std::endl;
-
     // change the spp value to change sample ammount(sample per pixel)
     int spp = 32; // 一个像素sample16次，都是一样的dir，后期反射次数不同有区别。而不是一个像素点拆分成16分进行sample。
     std::cout << "SPP: " << spp << "\n";
-    #pragma omp parallel for schedule(dynamic,chunk) nowait
     for (uint32_t j = 0; j < scene.height; ++j) {
         for (uint32_t i = 0; i < scene.width; ++i) {
             // generate primary ray direction

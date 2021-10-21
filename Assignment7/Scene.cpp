@@ -53,16 +53,12 @@ bool Scene::trace(
         }
     }
 
-
     return (*hitObject != nullptr);
 }
 
-float P_RR = 0.8f;
 // Implementation of Path Tracing
 Vector3f Scene::castRay(const Ray &ray, int depth) const
 {
-    // TO DO Implement Path Tracing Algorithm here
-
     if (depth > this->maxDepth) {
         return Vector3f(0, 0, 0);
     }
@@ -99,16 +95,16 @@ Vector3f Scene::castRay(const Ray &ray, int depth) const
     }
 
     // Russian Roulette(RR)
-    if (get_random_float() < P_RR)
+    if (get_random_float() < this->RussianRoulette)
     {
         Vector3f wi = m->sample(wo, N);
         Ray ray3 = Ray(hitPoint, wi);
         Intersection inter2 = intersect(ray3);
         if (inter2.happened && !inter2.obj->hasEmit())
         {
-            L_indir = castRay(ray3, depth) * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / P_RR;
+            L_indir = castRay(ray3, depth) * m->eval(wo, wi, N) * dotProduct(wi, N) / m->pdf(wo, wi, N) / this->RussianRoulette;
         }
     }
-
+    
     return L_dir + L_indir;
 }
