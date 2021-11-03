@@ -49,7 +49,7 @@ namespace CGL {
 				// TODO (Part 2): Add the force due to gravity, then compute the new velocity and position
 
 				// TODO (Part 2): Add global damping
-				m->forces -= 0.0005 * m->velocity;
+				m->forces -= 0.01 * m->velocity;
 
 				Vector2D accel = (m->forces) / m->mass + gravity;
 
@@ -72,10 +72,17 @@ namespace CGL {
 		for (auto& s : springs)
 		{
 			// TODO (Part 3): Simulate one timestep of the rope using explicit Verlet （solving constraints)
-			double curLength = (s->m1->position - s->m2->position).norm();
-			Vector2D force = s->k * (s->m2->position - s->m1->position) / curLength * (curLength - s->rest_length);
-			s->m1->forces += force;
-			s->m2->forces -= force;
+			Vector2D dir = (s->m2->position - s->m1->position);
+			double length = dir.norm();
+			Vector2D mov = (length - s->rest_length) * dir.unit() / 2.;
+			if (!s->m1->pinned)
+			{
+				s->m1->position += mov;
+			}
+			if (!s->m2->pinned)
+			{
+				s->m2->position -= mov;
+			}
 		}
 
 		for (auto& m : masses)
@@ -83,43 +90,15 @@ namespace CGL {
 			if (!m->pinned)
 			{
 				// TODO (Part 3.1): Set the new position of the rope mass
-				Vector2D temp_position = m->position;
-				m->position += (m->position - m->last_position) + delta_t * delta_t * (m->forces + gravity);
-				m->last_position = temp_position;
+				/*Vector2D temp_position = m->position;
+				m->position += (m->position - m->last_position) + delta_t * delta_t * gravity;
+				m->last_position = temp_position;*/
 
 				// TODO (Part 4): Add global Verlet damping
-				/*Vector2D temp_position = m->position;
-				m->position += (1 - 0.00005) * (m->position - m->last_position) + delta_t * delta_t * (m->forces + gravity);
-				m->last_position = temp_position;*/
+				Vector2D temp_position = m->position;
+				m->position += (1 - 0.00005) * (m->position - m->last_position) + delta_t * delta_t * gravity;
+				m->last_position = temp_position;
 			}
 		}
-
-
-		//for (auto& s : springs)
-		//{
-		//	// TODO (Part 3): Simulate one timestep of the rope using explicit Verlet （solving constraints)
-		//	Vector2D dir = (s->m2->position - s->m1->position);
-		//	double length = dir.norm();
-		//	Vector2D mov = (length - s->rest_length) * dir.unit() / 2.;
-		//	if (!s->m1->pinned) {
-		//		s->m1->position += mov;
-		//	}
-		//	if (!s->m2->pinned) {
-		//		s->m2->position -= mov;
-		//	}
-		//}
-
-		//for (auto& m : masses)
-		//{
-		//	if (!m->pinned)
-		//	{
-		//		Vector2D temp_position = m->position;
-		//		// damping factor
-		//		double kd = 5e-5;
-		//		m->position = m->position + (1 - kd) * (m->position - m->last_position)
-		//			+ gravity * delta_t * delta_t;
-		//		m->last_position = temp_position;
-		//	}
-		//}
 	}
 }
