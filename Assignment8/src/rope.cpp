@@ -40,7 +40,6 @@ namespace CGL {
 			Vector2D force = s->k * (s->m2->position - s->m1->position) / curLength * (curLength - s->rest_length);
 			s->m1->forces += force;
 			s->m2->forces -= force;
-			// std::cout << "force " << force.x << " " << force.y << std::endl;
 		}
 
 		for (auto& m : masses)
@@ -50,8 +49,10 @@ namespace CGL {
 				// TODO (Part 2): Add the force due to gravity, then compute the new velocity and position
 				m->velocity += delta_t * (m->forces + gravity);
 				m->position += m->velocity * delta_t;
-				std::cout << "m velocity " << m->velocity.x << " " << m->velocity.y << std::endl;
-				std::cout << "m position " << m->position.x << " " << m->position.y << std::endl;
+				/*std::cout << "force " << force.x << " " << force.y << std::endl;
+				std::cout << "force " << force.x << " " << force.y << std::endl;*/
+
+
 
 				// TODO (Part 2): Add global damping
 			}
