@@ -19,9 +19,9 @@
    02111-1307 USA.  */
 
 #ifdef USE_NONOPTION_FLAGS
-/* Attention: this file is *not* necessary when the GNU getopt functions
-   are used outside the GNU libc.  Some additional functionality of the
-   getopt functions in GNU libc require this additional work.  */
+   /* Attention: this file is *not* necessary when the GNU getopt functions
+	  are used outside the GNU libc.  Some additional functionality of the
+	  getopt functions in GNU libc require this additional work.  */
 
 #include <getopt.h>
 #include <string.h>
@@ -30,46 +30,45 @@
 
 #include <stdio-common/_itoa.h>
 
-/* Variable to synchronize work.  */
-char *__getopt_nonoption_flags;
-
+	  /* Variable to synchronize work.  */
+char* __getopt_nonoption_flags;
 
 /* Remove the environment variable "_<PID>_GNU_nonoption_argv_flags_" if
    it is still available.  If the getopt functions are also used in the
    application it does not exist anymore since it was saved for the use
    in getopt.  */
 void
-__getopt_clean_environment (char **env)
+__getopt_clean_environment(char** env)
 {
-  /* Bash 2.0 puts a special variable in the environment for each
-     command it runs, specifying which ARGV elements are the results
-     of file name wildcard expansion and therefore should not be
-     considered as options.  */
-  static const char envvar_tail[] = "_GNU_nonoption_argv_flags_=";
-  char var[50];
-  char *cp, **ep;
-  size_t len;
+	/* Bash 2.0 puts a special variable in the environment for each
+	   command it runs, specifying which ARGV elements are the results
+	   of file name wildcard expansion and therefore should not be
+	   considered as options.  */
+	static const char envvar_tail[] = "_GNU_nonoption_argv_flags_=";
+	char var[50];
+	char* cp, ** ep;
+	size_t len;
 
-  /* Construct the "_<PID>_GNU_nonoption_argv_flags_=" string.  We must
-     not use `sprintf'.  */
-  cp = memcpy (&var[sizeof (var) - sizeof (envvar_tail)], envvar_tail,
-	       sizeof (envvar_tail));
-  cp = _itoa_word (__getpid (), cp, 10, 0);
-  /* Note: we omit adding the leading '_' since we explicitly test for
-     it before calling strncmp.  */
-  len = (var + sizeof (var) - 1) - cp;
+	/* Construct the "_<PID>_GNU_nonoption_argv_flags_=" string.  We must
+	   not use `sprintf'.  */
+	cp = memcpy(&var[sizeof(var) - sizeof(envvar_tail)], envvar_tail,
+		sizeof(envvar_tail));
+	cp = _itoa_word(__getpid(), cp, 10, 0);
+	/* Note: we omit adding the leading '_' since we explicitly test for
+	   it before calling strncmp.  */
+	len = (var + sizeof(var) - 1) - cp;
 
-  for (ep = env; *ep != NULL; ++ep)
-    if ((*ep)[0] == '_'
-	&& __builtin_expect (strncmp (*ep + 1, cp, len) == 0, 0))
-      {
-	/* Found it.  Store this pointer and move later ones back.  */
-	char **dp = ep;
-	__getopt_nonoption_flags = &(*ep)[len];
-	do
-	  dp[0] = dp[1];
-	while (*dp++);
-	/* Continue the loop in case the name appears again.  */
-      }
+	for (ep = env; *ep != NULL; ++ep)
+		if ((*ep)[0] == '_'
+			&& __builtin_expect(strncmp(*ep + 1, cp, len) == 0, 0))
+		{
+			/* Found it.  Store this pointer and move later ones back.  */
+			char** dp = ep;
+			__getopt_nonoption_flags = &(*ep)[len];
+			do
+				dp[0] = dp[1];
+			while (*dp++);
+			/* Continue the loop in case the name appears again.  */
+		}
 }
 #endif	/* USE_NONOPTION_FLAGS */
