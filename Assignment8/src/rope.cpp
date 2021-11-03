@@ -49,8 +49,6 @@ namespace CGL {
 				// TODO (Part 2): Add the force due to gravity, then compute the new velocity and position
 				m->velocity += delta_t * (m->forces + gravity);
 				m->position += m->velocity * delta_t;
-				/*std::cout << "force " << force.x << " " << force.y << std::endl;
-				std::cout << "force " << force.x << " " << force.y << std::endl;*/
 
 
 
@@ -67,16 +65,25 @@ namespace CGL {
 		for (auto& s : springs)
 		{
 			// TODO (Part 3): Simulate one timestep of the rope using explicit Verlet （solving constraints)
+			double curLength = (s->m1->position - s->m2->position).norm();
+			Vector2D force = s->k * (s->m2->position - s->m1->position) / curLength * (curLength - s->rest_length);
+			s->m1->forces += force;
+			s->m2->forces -= force;
 		}
 
 		for (auto& m : masses)
 		{
 			if (!m->pinned)
 			{
-				Vector2D temp_position = m->position;
 				// TODO (Part 3.1): Set the new position of the rope mass
+				Vector2D temp_position = m->position;
+				m->position += (m->position - m->last_position) + delta_t * delta_t * (m->forces + gravity);
+				m->last_position = temp_position;
 
 				// TODO (Part 4): Add global Verlet damping
+				/*Vector2D temp_position = m->position;
+				m->position += (1 - 0.00005) * (m->position - m->last_position) + delta_t * delta_t * (m->forces + gravity);
+				m->last_position = temp_position;*/
 			}
 		}
 	}

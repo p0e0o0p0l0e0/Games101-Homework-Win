@@ -23,19 +23,19 @@ namespace CGL {
 		glColor3f(1.0, 1.0, 1.0);
 		// Create two ropes
 		ropeEuler = new Rope(Vector2D(0, 200), Vector2D(-400, 200), 32, config.mass, config.ks, { 0 });
-		//ropeVerlet = new Rope(Vector2D(0, 200), Vector2D(-400, 200), 3, config.mass, config.ks, { 0 });
+		ropeVerlet = new Rope(Vector2D(0, 200), Vector2D(-400, 200), 3, config.mass, config.ks, { 0 });
 	}
 
 	void Application::render() {
 		//Simulation loops
 		for (int i = 0; i < config.steps_per_frame; i++) {
 			ropeEuler->simulateEuler(1 / config.steps_per_frame, config.gravity);
-			//ropeVerlet->simulateVerlet(1 / config.steps_per_frame, config.gravity);
+			ropeVerlet->simulateVerlet(1 / config.steps_per_frame, config.gravity);
 		}
 		// Rendering ropes
 		Rope* rope;
 
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 2; i++) {
 			if (i == 0) {
 				glColor3f(0.0, 0.0, 1.0);
 				rope = ropeEuler;
