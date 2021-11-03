@@ -38,9 +38,9 @@ namespace CGL {
 			// TODO (Part 2): Use Hooke's law to calculate the force on a node
 			double curLength = (s->m1->position - s->m2->position).norm();
 			Vector2D force = s->k * (s->m2->position - s->m1->position) / curLength * (curLength - s->rest_length);
-			s->m1->forces -= force;
-			s->m2->forces += force;
-			std::cout << "force " << force.x << " " << force.y << std::endl;
+			s->m1->forces += force;
+			s->m2->forces -= force;
+			// std::cout << "force " << force.x << " " << force.y << std::endl;
 		}
 
 		for (auto& m : masses)
