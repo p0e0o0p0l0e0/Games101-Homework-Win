@@ -47,12 +47,19 @@ namespace CGL {
 			if (!m->pinned)
 			{
 				// TODO (Part 2): Add the force due to gravity, then compute the new velocity and position
-				m->velocity += delta_t * (m->forces + gravity);
-				m->position += m->velocity * delta_t;
-
-
 
 				// TODO (Part 2): Add global damping
+				m->forces -= 0.0005 * m->velocity;
+
+				Vector2D accel = (m->forces) / m->mass + gravity;
+
+				// explicit euler
+				/*m->position += m->velocity * delta_t;
+				m->velocity += accel * delta_t;*/
+
+				// semi-implicit eluer
+				m->velocity += accel * delta_t;
+				m->position += m->velocity * delta_t;
 			}
 
 			// Reset all forces on each mass
